@@ -17,8 +17,8 @@ import (
 )
 
 var (
-	ErrTooQuickly = errors.New("Posting too quickly")
-	ErrDuplicate = errors.New("Duplicate comment")
+	ErrTooQuickly  = errors.New("Posting too quickly")
+	ErrDuplicate   = errors.New("Duplicate comment")
 	ErrMaintenance = errors.New("Site on maintenance")
 )
 
@@ -61,7 +61,6 @@ func main() {
 		switch err {
 		case ErrDuplicate:
 			log.Println("Tried to send duplicate review")
-			continue
 
 		case ErrMaintenance:
 			log.Println("Site under maintenance")
@@ -70,7 +69,6 @@ func main() {
 			}
 			log.Printf("Sleeping for %v\n", timeoutCur)
 			time.Sleep(timeoutCur)
-			continue
 
 		case ErrTooQuickly:
 			log.Println("Got timed out")
@@ -79,7 +77,6 @@ func main() {
 			}
 			log.Printf("Sleeping for %v\n", timeoutCur)
 			time.Sleep(timeoutCur)
-			continue
 
 		case nil:
 			timeoutCur = timeoutDefault
@@ -153,7 +150,7 @@ func leaveReview(host, postID string, rating int) error {
 	values.Set("comment_post_ID", postID)
 	values.Set("comment_parent", "0")
 
-	// NOTE: the program can be parallelized if proxies are used
+	// NOTE: program can be parallelized if proxies are used
 	client := &http.Client{}
 	resp, err := client.PostForm(to, values)
 	if resp == nil {
@@ -174,7 +171,7 @@ func leaveReview(host, postID string, rating int) error {
 		return ErrMaintenance
 	}
 
-	return err
+	return nil
 }
 
 func genAuthor() string {
