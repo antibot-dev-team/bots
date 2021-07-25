@@ -55,7 +55,7 @@ func main() {
 	timeoutLimit := 1_000 * time.Second
 
 	reviewsDone := 0
-	for reviewsDone < *reviewAmount {
+	for { // for reviewsDone < *reviewAmount
 		log.Println("Sending review")
 		err := leaveReview(prodURL.Host, postID, *rating)
 		switch err {
@@ -80,7 +80,11 @@ func main() {
 
 		case nil:
 			timeoutCur = timeoutDefault
+			reviewsDone++
 			log.Printf("Sent review")
+			if reviewsDone >= *reviewAmount {
+				return
+			}
 			log.Printf("Sleeping for %v\n", timeoutCur)
 			time.Sleep(timeoutCur)
 
