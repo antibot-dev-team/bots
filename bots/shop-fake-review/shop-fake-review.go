@@ -17,6 +17,13 @@ import (
 )
 
 var (
+	pronouns = []string{"I", "My family", "My wife", "My dog"}
+	verbs = []string{"tried out", "bought", "used", "utilized"}
+	duration = []string{"1 month", "2 days", "1 year"}
+	names = []string{"Petya", "Sasha", "Grisha", "Misha", "Oleg"}
+)
+
+var (
 	ErrTooQuickly  = errors.New("Posting too quickly")
 	ErrDuplicate   = errors.New("Duplicate comment")
 	ErrMaintenance = errors.New("Site on maintenance")
@@ -179,7 +186,6 @@ func leaveReview(host, postID string, rating int) error {
 }
 
 func genAuthor() string {
-	names := []string{"Petya", "Sasha", "Grisha", "Misha", "Oleg"}
 	name := names[rand.Intn(len(names))]
 	return fmt.Sprintf("%s%d", name, rand.Intn(1_000_000))
 }
@@ -189,10 +195,6 @@ func genEmail(author string) string {
 }
 
 func genReview() string {
-	pronouns := []string{"I", "My family", "My wife", "My dog"}
-	verbs := []string{"tried out", "bought", "used", "utilized"}
-	duration := []string{"1 month", "2 days", "1 year"}
-
 	f := pronouns[rand.Intn(len(pronouns))]
 	s := verbs[rand.Intn(len(verbs))]
 	t := duration[rand.Intn(len(duration))]
