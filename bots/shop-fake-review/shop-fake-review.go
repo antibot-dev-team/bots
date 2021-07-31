@@ -31,7 +31,8 @@ var (
 
 func main() {
 	productLink := flag.String("product", "", "Link to the product for which to leave fake reviews for.")
-	reviewAmount := flag.Int("n", 10, "Amount of reviews to leave.")
+	reviewAmount := flag.Uint("n", 10, "Amount of reviews to leave.")
+	maxAttempts := flag.Uint("attempts", 3, "Amount of attempts allowed to send single review. Zero means no limit.")
 	rating := flag.Int("rating", 5, "Rating for the reviews (1-5).")
 
 	flag.Parse()
@@ -57,11 +58,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	timeoutDefault := 10 * time.Second
-	timeoutCur := timeoutDefault
-	timeoutLimit := 1_000 * time.Second
-
-	reviewsDone := 0
+	timeoutDefault := 15 * time.Second
+	var reviewsDone uint
+	var attempts uint
 	for { // for reviewsDone < *reviewAmount
 		log.Println("Sending review")
 		err := leaveReview(prodURL.Scheme, prodURL.Host, postID, *rating)
@@ -71,29 +70,34 @@ func main() {
 
 		case ErrMaintenance:
 			log.Println("Site under maintenance")
-			if timeoutCur < timeoutLimit {
-				timeoutCur *= 2
+			attempts++
+			if *maxAttempts != 0 && attempts >= *maxAttempts {
+				log.Println("Attempts exceeded")
+				return
 			}
-			log.Printf("Sleeping for %v\n", timeoutCur)
-			time.Sleep(timeoutCur)
+			log.Printf("Sleeping for %v\n", timeoutDefault)
+			time.Sleep(timeoutDefault)
 
 		case ErrTooQuickly:
 			log.Println("Got timed out")
-			if timeoutCur < timeoutLimit {
-				timeoutCur *= 2
+			attempts++
+			if *maxAttempts != 0 && attempts >= *maxAttempts {
+				log.Println("Attempts exceeded")
+				return
 			}
-			log.Printf("Sleeping for %v\n", timeoutCur)
-			time.Sleep(timeoutCur)
+			timeout := timeoutDefault + time.Duration(rand.Intn(5)) * time.Second
+			log.Printf("Sleeping for %v\n", timeout)
+			time.Sleep(timeout)
 
 		case nil:
-			timeoutCur = timeoutDefault
 			reviewsDone++
+			attempts = 0
 			log.Printf("Sent review")
 			if reviewsDone >= *reviewAmount {
 				return
 			}
-			log.Printf("Sleeping for %v\n", timeoutCur)
-			time.Sleep(timeoutCur)
+			log.Printf("Sleeping for %v\n", timeoutDefault)
+			time.Sleep(timeoutDefault)
 
 		default:
 			log.Fatal(err)
