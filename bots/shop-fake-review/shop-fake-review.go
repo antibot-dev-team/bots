@@ -174,11 +174,11 @@ func leaveReview(scheme, host, postID string, rating int) error {
 	}
 
 	switch {
-	case bytes.Contains(body, []byte("Duplicate comment")):
+	case bytes.Contains(bytes.ToLower(body), []byte("duplicate comment")):
 		return ErrDuplicate
-	case bytes.Contains(body, []byte("Slow down")):
+	case bytes.Contains(bytes.ToLower(body), []byte("slow down")):
 		return ErrTooQuickly
-	case bytes.Contains(body, []byte("scheduled maintenance")):
+	case bytes.Contains(bytes.ToLower(body), []byte("scheduled maintenance")):
 		return ErrMaintenance
 	}
 
