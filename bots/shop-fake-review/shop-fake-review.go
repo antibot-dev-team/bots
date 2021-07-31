@@ -64,7 +64,7 @@ func main() {
 	reviewsDone := 0
 	for { // for reviewsDone < *reviewAmount
 		log.Println("Sending review")
-		err := leaveReview(prodURL.Host, postID, *rating)
+		err := leaveReview(prodURL.Scheme, prodURL.Host, postID, *rating)
 		switch err {
 		case ErrDuplicate:
 			log.Println("Tried to send duplicate review")
@@ -147,8 +147,8 @@ func getPostID(productLink string) (string, error) {
 	return "", errors.New("Post ID not found")
 }
 
-func leaveReview(host, postID string, rating int) error {
-	to := fmt.Sprintf("http://%s/wp-comments-post.php", host)
+func leaveReview(scheme, host, postID string, rating int) error {
+	to := fmt.Sprintf("%s://%s/wp-comments-post.php", scheme, host)
 
 	author := genAuthor()
 
