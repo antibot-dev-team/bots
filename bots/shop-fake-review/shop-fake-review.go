@@ -9,18 +9,18 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"time"
-	"regexp"
 
 	"github.com/pkg/errors"
 )
 
 var (
-	pronouns = []string{"I", "My family", "My wife", "My dog"}
-	verbs = []string{"tried out", "bought", "used", "utilized"}
+	pronouns  = []string{"I", "My family", "My wife", "My dog"}
+	verbs     = []string{"tried out", "bought", "used", "utilized"}
 	durations = []string{"1 month", "2 days", "1 year"}
-	names = []string{"Petya", "Sasha", "Grisha", "Misha", "Oleg"}
+	names     = []string{"Petya", "Sasha", "Grisha", "Misha", "Oleg"}
 )
 
 var (
@@ -85,7 +85,7 @@ func main() {
 				log.Println("Attempts exceeded")
 				return
 			}
-			timeout := timeoutDefault + time.Duration(rand.Intn(5)) * time.Second
+			timeout := timeoutDefault + time.Duration(rand.Intn(5))*time.Second
 			log.Printf("Sleeping for %v\n", timeout)
 			time.Sleep(timeout)
 
