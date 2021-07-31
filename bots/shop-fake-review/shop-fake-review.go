@@ -19,7 +19,7 @@ import (
 var (
 	pronouns = []string{"I", "My family", "My wife", "My dog"}
 	verbs = []string{"tried out", "bought", "used", "utilized"}
-	duration = []string{"1 month", "2 days", "1 year"}
+	durations = []string{"1 month", "2 days", "1 year"}
 	names = []string{"Petya", "Sasha", "Grisha", "Misha", "Oleg"}
 )
 
@@ -195,10 +195,10 @@ func genEmail(author string) string {
 }
 
 func genReview() string {
-	f := pronouns[rand.Intn(len(pronouns))]
-	s := verbs[rand.Intn(len(verbs))]
-	t := duration[rand.Intn(len(duration))]
+	pronoun := pronouns[rand.Intn(len(pronouns))]
+	verb := verbs[rand.Intn(len(verbs))]
+	duration := durations[rand.Intn(len(durations))]
 
-	review := fmt.Sprintf("%s %s this product for around %s", f, s, t)
+	review := fmt.Sprintf("%s %s this product for around %s", pronoun, verb, duration)
 	return review
 }
