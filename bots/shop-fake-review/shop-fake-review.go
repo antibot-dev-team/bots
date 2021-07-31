@@ -11,9 +11,9 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+	"regexp"
 
 	"github.com/pkg/errors"
-	"golang.org/x/net/html"
 )
 
 var (
@@ -108,43 +108,21 @@ func getPostID(productLink string) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	// Extract value of attribute "value" from tag <input> with attribute name="comment_post_ID"
-	// <input type="hidden" name="comment_post_ID" value="15" id="comment_post_ID">
-	z := html.NewTokenizer(resp.Body)
-	for {
-		tt := z.Next()
-		if tt == html.ErrorToken {
-			break
-		}
-
-		tn, hasAttr := z.TagName()
-		if string(tn) != "input" || !hasAttr {
-			continue
-		}
-
-		var hasPostID bool
-		var postID string
-
-		var key, val []byte
-		moreAttr := true
-		for moreAttr {
-			key, val, moreAttr = z.TagAttr()
-
-			if string(key) == "name" && string(val) == "comment_post_ID" {
-				hasPostID = true
-			}
-
-			if string(key) == "value" {
-				postID = string(val)
-			}
-
-			if hasPostID && len(postID) > 0 {
-				return postID, nil
-			}
-		}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
 	}
 
-	return "", errors.New("Post ID not found")
+	// Extract product ID as a content of field 'p' from:
+	// <link rel="shortlink" href="http://localhost/?p=32">
+	re := regexp.MustCompile("[?&]p=(\\d+)[\"&']")
+	matches := re.FindSubmatch(body)
+	if len(matches) != 2 {
+		return "", errors.New("Could not find post ID")
+	}
+	prodID := string(matches[1])
+
+	return prodID, nil
 }
 
 func leaveReview(scheme, host, postID string, rating int) error {
