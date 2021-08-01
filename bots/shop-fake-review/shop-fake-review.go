@@ -66,19 +66,19 @@ func main() {
 
 	// Get postID using first proxy in the given list, or without proxy if no proxies are given
 	var postID string
+	var client *http.Client
 	if proxies == nil || len(proxies) == 0 {
-		client := &http.Client{Timeout: *reqTimeout}
-		postID, err = getPostID(client, *productLink)
+		client = &http.Client{Timeout: *reqTimeout}
 	} else {
-		client := &http.Client{
+		client = &http.Client{
 			Transport: &http.Transport{
 				Proxy: http.ProxyURL(proxies[0]),
 			},
 			Timeout: *reqTimeout,
 		}
-		postID, err = getPostID(client, *productLink)
 	}
 
+	postID, err = getPostID(client, *productLink)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -88,14 +88,13 @@ func main() {
 	// Case where no proxies are given
 	// WaitGroup here is redundant, but present to reuse startBot function with no proxies
 	if proxies == nil || len(proxies) == 0 {
-		client := &http.Client{Timeout: *reqTimeout}
 		wg.Add(1)
 		startBot(wg, client, prodURL, postID, *rating, *maxAttempts, *reviewAmount, 0)
 		return
 	}
 
 	for botID, proxy := range proxies {
-		client := &http.Client{
+		client = &http.Client{
 			Transport: &http.Transport{
 				Proxy: http.ProxyURL(proxy),
 			},
