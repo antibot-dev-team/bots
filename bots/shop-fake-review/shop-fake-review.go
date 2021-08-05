@@ -71,7 +71,6 @@ func main() {
 	}
 
 	// Get postID using first proxy in the given list, or without proxy if no proxies are given
-	var postID string
 	var client *http.Client
 	if proxies == nil || len(proxies) == 0 {
 		client = &http.Client{Timeout: *reqTimeout}
@@ -84,7 +83,7 @@ func main() {
 		}
 	}
 
-	postID, err = getPostID(client, *productLink)
+	postID, err := getPostID(client, *productLink)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -145,10 +144,12 @@ func scanProxies(proxyPath string) ([]*url.URL, error) {
 }
 
 // startBot starts posting reviews to product with given postID.
-// Proxy string is used only for logging prefix and http.Client should have the same proxy used in http.Client.Transport.
+// Proxy string is used only for logging prefix and http.Client should have the same proxy used.
 // How many reviews should be left is specified by reviewAmount.
 // If the attempt to leave a review has failed maxAttempts times in a row, bot terminates.
-func startBot(wg *sync.WaitGroup, client *http.Client, prodURL *url.URL, postID string, rating int, maxAttempts, reviewAmount uint, proxy string) {
+func startBot(wg *sync.WaitGroup, client *http.Client, prodURL *url.URL,
+	postID string, rating int, maxAttempts, reviewAmount uint, proxy string) {
+
 	timeoutDefault := 15 * time.Second
 	var reviewsDone uint
 	var attempts uint
@@ -221,9 +222,9 @@ func getPostID(client *http.Client, productLink string) (string, error) {
 	if len(matches) != 2 {
 		return "", errors.New("Could not find post ID")
 	}
-	prodID := string(matches[1])
+	postID := string(matches[1])
 
-	return prodID, nil
+	return postID, nil
 }
 
 // postReview posts a random review for a product with given postID.
