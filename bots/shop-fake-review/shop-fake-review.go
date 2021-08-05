@@ -38,7 +38,7 @@ func main() {
 	maxAttempts := flag.Uint("attempts", 3, "Amount of attempts allowed to send single review. Zero means no limit.")
 	rating := flag.Int("rating", 5, "Rating for the reviews (1-5).")
 	proxyPath := flag.String("proxy", "", "Path to text file containing one proxy per line. "+
-		"Supported schemes: http, https, socks5. Line example: socks5://0.0.0.0:1337."+
+		"Supported schemes: http, https, socks5. Line example: socks5://0.0.0.0:1337. "+
 		"If no path specified or no proxies in file present, proxy from $HTTP_PROXY is used.")
 	reqTimeout := flag.Duration("timeout", 10*time.Second, "The time given to the bot for one request.")
 	flag.Parse()
@@ -146,7 +146,7 @@ func startBot(wg *sync.WaitGroup, client *http.Client, prodURL *url.URL, postID 
 	var reviewsDone uint
 	var attempts uint
 	for { // for reviewsDone < *reviewAmount
-		log.Printf("[BOT-%d] Sending reviev\n", botID)
+		log.Printf("[BOT-%d] Sending review\n", botID)
 		err := postReview(client, prodURL.Scheme, prodURL.Host, postID, rating)
 		switch err {
 		case ErrDuplicate:
