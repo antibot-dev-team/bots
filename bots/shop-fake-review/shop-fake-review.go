@@ -56,6 +56,8 @@ func main() {
 		*rating = 5
 	}
 
+	rand.Seed(time.Now().UnixNano())
+
 	prodURL, err := url.Parse(*productLink)
 	if err != nil {
 		log.Fatal(err)
