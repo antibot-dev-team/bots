@@ -33,7 +33,7 @@ var (
 )
 
 func main() {
-	productLink := flag.String("product", "", "Link to the product for which to leave fake reviews for.")
+	productLink := flag.String("product", "", "Link to the product for which to leave fake reviews for (including scheme).")
 	reviewAmount := flag.Uint("n", 1, "Amount of reviews to leave from single proxy.")
 	maxAttempts := flag.Uint("attempts", 3, "Amount of attempts allowed to send single review. Zero means no limit.")
 	rating := flag.Int("rating", 5, "Rating for the reviews (1-5).")
@@ -57,6 +57,10 @@ func main() {
 	prodURL, err := url.Parse(*productLink)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if prodURL.Scheme == "" {
+		log.Fatal("Given product url doesn't have a scheme.")
 	}
 
 	proxies, err := scanProxies(*proxyPath)
