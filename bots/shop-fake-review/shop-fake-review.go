@@ -93,11 +93,11 @@ func main() {
 	// WaitGroup here is redundant, but present to reuse startBot function with no proxies
 	if proxies == nil || len(proxies) == 0 {
 		wg.Add(1)
-		startBot(wg, client, prodURL, postID, *rating, *maxAttempts, *reviewAmount, 0)
+		startBot(wg, client, prodURL, postID, *rating, *maxAttempts, *reviewAmount, "default proxy")
 		return
 	}
 
-	for botID, proxy := range proxies {
+	for _, proxy := range proxies {
 		client = &http.Client{
 			Transport: &http.Transport{
 				Proxy: http.ProxyURL(proxy),
@@ -105,7 +105,7 @@ func main() {
 			Timeout: *reqTimeout,
 		}
 		wg.Add(1)
-		go startBot(wg, client, prodURL, postID, *rating, *maxAttempts, *reviewAmount, botID)
+		go startBot(wg, client, prodURL, postID, *rating, *maxAttempts, *reviewAmount, proxy.String())
 	}
 
 	wg.Wait()
@@ -141,53 +141,53 @@ func scanProxies(proxyPath string) ([]*url.URL, error) {
 	return proxies, nil
 }
 
-func startBot(wg *sync.WaitGroup, client *http.Client, prodURL *url.URL, postID string, rating int, maxAttempts, reviewAmount uint, botID int) {
+func startBot(wg *sync.WaitGroup, client *http.Client, prodURL *url.URL, postID string, rating int, maxAttempts, reviewAmount uint, proxy string) {
 	timeoutDefault := 15 * time.Second
 	var reviewsDone uint
 	var attempts uint
 	for { // for reviewsDone < *reviewAmount
-		log.Printf("[BOT-%d] Sending review\n", botID)
+		log.Printf("[Proxy: %v] Sending review\n", proxy)
 		err := postReview(client, prodURL.Scheme, prodURL.Host, postID, rating)
 		switch err {
 		case ErrDuplicate:
-			log.Printf("[BOT-%d] Tried to send duplicate review\n", botID)
+			log.Printf("[Proxy: %v] Tried to send duplicate review\n", proxy)
 
 		case ErrMaintenance:
-			log.Printf("[BOT-%d] Site under maintenance\n", botID)
+			log.Printf("[Proxy: %v] Site under maintenance\n", proxy)
 			attempts++
 			if maxAttempts != 0 && attempts >= maxAttempts {
-				log.Printf("[BOT-%d] Attempts exceeded\n", botID)
+				log.Printf("[Proxy: %v] Attempts exceeded\n", proxy)
 				wg.Done()
 				return
 			}
-			log.Printf("[BOT-%d] Sleeping for %v\n", botID, timeoutDefault)
+			log.Printf("[Proxy: %v] Sleeping for %v\n", proxy, timeoutDefault)
 			time.Sleep(timeoutDefault)
 
 		case ErrTooQuickly:
-			log.Printf("[BOT-%d] Got timed out\n", botID)
+			log.Printf("[Proxy: %v] Got timed out\n", proxy)
 			attempts++
 			if maxAttempts != 0 && attempts >= maxAttempts {
-				log.Printf("[BOT-%d] Attempts exceeded\n", botID)
+				log.Printf("[Proxy: %v] Attempts exceeded\n", proxy)
 				wg.Done()
 				return
 			}
 			timeout := timeoutDefault + time.Duration(rand.Intn(5))*time.Second
-			log.Printf("[BOT-%d] Sleeping for %v\n", botID, timeout)
+			log.Printf("[Proxy: %v] Sleeping for %v\n", proxy, timeout)
 			time.Sleep(timeout)
 
 		case nil:
 			reviewsDone++
 			attempts = 0
-			log.Printf("[BOT-%d] Sent review\n", botID)
+			log.Printf("[Proxy: %v] Sent review\n", proxy)
 			if reviewsDone >= reviewAmount {
 				wg.Done()
 				return
 			}
-			log.Printf("[BOT-%d] Sleeping for %v\n", botID, timeoutDefault)
+			log.Printf("[Proxy: %v] Sleeping for %v\n", proxy, timeoutDefault)
 			time.Sleep(timeoutDefault)
 
 		default:
-			log.Printf("[BOT-%d] Got error: %v", botID, err)
+			log.Printf("[Proxy: %v] Got error: %v", proxy, err)
 			wg.Done()
 			return
 		}
