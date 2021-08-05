@@ -19,6 +19,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Words used for review generation. Feel free to alter.
 var (
 	pronouns  = []string{"I", "My family", "My wife", "My dog"}
 	verbs     = []string{"tried out", "bought", "used", "utilized"}
@@ -26,6 +27,7 @@ var (
 	names     = []string{"Petya", "Sasha", "Grisha", "Misha", "Oleg"}
 )
 
+// Errors that can be returned when posting a review.
 var (
 	ErrTooQuickly  = errors.New("Posting too quickly")
 	ErrDuplicate   = errors.New("Duplicate comment")
@@ -111,6 +113,7 @@ func main() {
 	wg.Wait()
 }
 
+// scanProxies opens the file specified by proxyPath and parses one proxy per line to []*url.URL.
 func scanProxies(proxyPath string) ([]*url.URL, error) {
 	var proxies []*url.URL
 
@@ -141,6 +144,10 @@ func scanProxies(proxyPath string) ([]*url.URL, error) {
 	return proxies, nil
 }
 
+// startBot starts posting reviews to product with given postID.
+// Proxy string is used only for logging prefix and http.Client should have the same proxy used in http.Client.Transport.
+// How many reviews should be left is specified by reviewAmount.
+// If the attempt to leave a review has failed maxAttempts times in a row, bot terminates.
 func startBot(wg *sync.WaitGroup, client *http.Client, prodURL *url.URL, postID string, rating int, maxAttempts, reviewAmount uint, proxy string) {
 	timeoutDefault := 15 * time.Second
 	var reviewsDone uint
@@ -194,6 +201,7 @@ func startBot(wg *sync.WaitGroup, client *http.Client, prodURL *url.URL, postID 
 	}
 }
 
+// getPostID extracts post (product) ID from page and returns it.
 func getPostID(client *http.Client, productLink string) (string, error) {
 	resp, err := client.Get(productLink)
 	if err != nil {
@@ -218,6 +226,7 @@ func getPostID(client *http.Client, productLink string) (string, error) {
 	return prodID, nil
 }
 
+// postReview posts a random review for a product with given postID.
 func postReview(client *http.Client, scheme, host, postID string, rating int) error {
 	to := fmt.Sprintf("%s://%s/wp-comments-post.php", scheme, host)
 
@@ -232,7 +241,6 @@ func postReview(client *http.Client, scheme, host, postID string, rating int) er
 	values.Set("comment_post_ID", postID)
 	values.Set("comment_parent", "0")
 
-	// NOTE: program can be parallelized if proxies are used
 	resp, err := client.PostForm(to, values)
 	if resp == nil {
 		return err
@@ -255,15 +263,18 @@ func postReview(client *http.Client, scheme, host, postID string, rating int) er
 	return nil
 }
 
+// genAuthor generates reviewer name using predefined names concatenated with random integer in range of [0, 1_000_000).
 func genAuthor() string {
 	name := names[rand.Intn(len(names))]
 	return fmt.Sprintf("%s%d", name, rand.Intn(1_000_000))
 }
 
+// genEmail generates email in a form of "author@example.com".
 func genEmail(author string) string {
 	return fmt.Sprintf("%s@example.com", author)
 }
 
+// genReview generates review body using predefined pronouns, verbs and durations.
 func genReview() string {
 	pronoun := pronouns[rand.Intn(len(pronouns))]
 	verb := verbs[rand.Intn(len(verbs))]
